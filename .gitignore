@@ -7,7 +7,7 @@
 
 # testing
 /coverage
-
+/fixtures/**actual.txt
 # production
 /build
 
