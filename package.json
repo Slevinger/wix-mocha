@@ -1,0 +1,13 @@
+{
+  "name": "mini-mini-mocha",
+  "version": "1.0.1",
+  "license": "UNLICENSED",
+  "main": "src/mini-mocha.js",
+  "bin": "src/mini-mocha.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "devDependencies": {
+    "mocha": "^9.1.3"
+  }
+}

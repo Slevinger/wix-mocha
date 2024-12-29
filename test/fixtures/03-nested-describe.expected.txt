@@ -1,0 +1,5 @@
+  suite
+    sub-suite
+      ✓ description
+
+  1 passing

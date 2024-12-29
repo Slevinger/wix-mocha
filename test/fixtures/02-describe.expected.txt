@@ -1,0 +1,4 @@
+  suite
+    ✓ description
+
+  1 passing

@@ -1,0 +1,3 @@
+  ✓ description
+
+  1 passing
