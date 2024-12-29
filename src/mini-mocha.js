@@ -96,9 +96,14 @@ async function runSuite(suite, indent = 1, only = false) {
 }
 
 
+const checkHasOnly = ({tests})=>{
+  const res = tests && tests.some((t) => t.only || (t.tests && t.tests.some(checkHasOnly)));
+  return res;
+
+}
 
 async function runTests() {
-  const hasOnly = tests.some((t) => t.only || (t.tests && t.tests.some((nested) => nested.only)));
+  const hasOnly = checkHasOnly({tests});
   const isOnly = hasOnly;
 
   let totalPassed = 0, totalFailed = 0;
