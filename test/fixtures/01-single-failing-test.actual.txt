@@ -6,3 +6,5 @@
   1) description:
 
       AssertionError [ERR_ASSERTION]: 0 == 1
+
+  Total run time: 1.32ms

@@ -5,7 +5,7 @@
   "main": "src/mini-mocha.js",
   "bin": "src/mini-mocha.js",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha --show-timing"
   },
   "devDependencies": {
     "mocha": "^9.1.3"

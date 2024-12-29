@@ -2,3 +2,5 @@
     ✓ description
 
   1 passing
+
+  Total run time: 0.94ms

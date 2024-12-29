@@ -1,3 +1,4 @@
+const { performance } = require('perf_hooks');
 const assert = require('assert');
 
 const tests = [];
@@ -42,35 +43,35 @@ global.describe.only = (name, fn) => {
   currentSuite = parentSuite;
 };
 
+// Function to run the suite of tests
 async function runSuite(suite, indent = 1, only = false) {
   const hasOnly = suite.tests.some((t) => t.only || (t.tests && t.tests.some((nested) => nested.only)));
   const isOnly = hasOnly || only;
 
-  // Filter runnable test cases and sub-suites
   const testCases = suite.tests.filter((t) => t.fn && (!isOnly || t.only));
   const subSuites = suite.tests.filter((t) => !t.fn);
 
-  // Determine if this suite or any nested suite has runnable content
-  const hasRunnableTests = testCases.length > 0 || subSuites.some((subSuite) => {
-    const subSuiteResult = subSuite.tests && subSuite.tests.some((nested) => nested.fn || nested.tests);
-    return subSuiteResult && (!only || subSuite.tests.some((nested) => nested.only));
-  });
+  const hasRunnableTests =
+      testCases.length > 0 ||
+      subSuites.some((subSuite) => {
+        const subSuiteResult = subSuite.tests && subSuite.tests.some((nested) => nested.fn || nested.tests);
+        return subSuiteResult && (!only || subSuite.tests.some((nested) => nested.only));
+      });
 
-  if (!hasRunnableTests) return { passed: 0, failed: 0 }; // Skip printing this suite entirely
+  if (!hasRunnableTests) return { passed: 0, failed: 0 };
 
-  // Print suite name if it has runnable content
+  // Print suite name without showing the time taken for the suite itself
   console.log(`${'  '.repeat(indent)}${suite.name}`);
   let passed = 0, failed = 0;
 
-  // Run test cases in this suite
   for (const test of testCases) {
     try {
       for (const hook of suite.beforeEachHooks) {
         await hook();
       }
       await test.fn();
-      console.log(`${'  '.repeat(indent + 1)}✓ ${test.name}`);
       passed++;
+      console.log(`${'  '.repeat(indent + 1)}✓ ${test.name}`); // Print only passing test
     } catch (err) {
       console.log(`${'  '.repeat(indent + 1)}${failureIndex}) ${test.name}`);
       failures.push({
@@ -78,14 +79,14 @@ async function runSuite(suite, indent = 1, only = false) {
         name: test.name,
         message: err.message || 'undefined',
         indent: indent + 1,
-        details: `AssertionError [ERR_ASSERTION]: ${err.message || 'No message'}`
+        details: `AssertionError [ERR_ASSERTION]: ${err.message || 'No message'}`,
       });
       failed++;
       failureIndex++;
     }
   }
 
-  // Run nested suites after test cases
+  // Run nested sub-suites if there are any
   for (const subSuite of subSuites) {
     const subResult = await runSuite(subSuite, indent + 1, isOnly);
     passed += subResult.passed;
@@ -94,8 +95,6 @@ async function runSuite(suite, indent = 1, only = false) {
 
   return { passed, failed };
 }
-
-
 
 async function runTests() {
   const hasOnly = tests.some((t) => t.only || (t.tests && t.tests.some((nested) => nested.only)));
@@ -106,12 +105,12 @@ async function runTests() {
   const topLevelTests = tests.filter((t) => t.fn);
   const topLevelSuites = tests.filter((t) => !t.fn);
 
-  // Run top-level test cases first
+  const totalStartTime = performance.now(); // Start the total time for all tests
+
   for (const test of topLevelTests) {
-    if (isOnly && !test.only) continue; // Skip non-.only tests if .only is present
+    if (isOnly && !test.only) continue;
     try {
       await test.fn();
-      console.log(`✓ ${test.name}`);
       totalPassed++;
     } catch (err) {
       console.log(`  ${failureIndex}) ${test.name}`);
@@ -120,21 +119,23 @@ async function runTests() {
         name: test.name,
         message: err.message || 'undefined',
         indent: 0,
-        details: `AssertionError [ERR_ASSERTION]: ${err.message || 'No message'}`
+        details: `AssertionError [ERR_ASSERTION]: ${err.message || 'No message'}`,
       });
       totalFailed++;
       failureIndex++;
     }
   }
 
-  // Run top-level suites after test cases
+  // Run top-level suites after tests
   for (const suite of topLevelSuites) {
     const suiteResult = await runSuite(suite, 1, isOnly);
     totalPassed += suiteResult.passed;
     totalFailed += suiteResult.failed;
   }
 
-  // Final output formatting
+  const totalDuration = performance.now() - totalStartTime; // Calculate the total execution time for all tests
+
+  // Final summary output
   console.log(`\n  ${totalPassed} passing`);
   if (totalFailed > 0) {
     console.log(`  ${totalFailed} failing`);
@@ -143,12 +144,15 @@ async function runTests() {
       console.log(`      ${failure.details}`);
     }
   }
+
+  // Print total execution time for the entire run
+  console.log(`\n  Total run time: ${totalDuration.toFixed(2)}ms`);
 }
 
 (async () => {
-  const testFiles = process.argv.slice(2);
+  const testFiles = process.argv.slice(2); // Get test files passed in command-line arguments
   for (const file of testFiles) {
-    require(file);
+    require(file); // Dynamically require each test file
   }
-  await runTests();
+  await runTests(); // Execute the tests after loading all test files
 })();

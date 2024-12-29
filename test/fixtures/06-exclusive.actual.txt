@@ -1,5 +1,6 @@
-✓ a
   suite
     ✓ c
 
   2 passing
+
+  Total run time: 0.76ms

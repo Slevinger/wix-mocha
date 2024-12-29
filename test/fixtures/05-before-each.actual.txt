@@ -4,3 +4,5 @@
     ✓ c
 
   3 passing
+
+  Total run time: 0.98ms
